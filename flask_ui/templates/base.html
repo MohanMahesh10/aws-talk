@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Reem{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <header class="top">
+    <a class="brand" href="{{ url_for('dashboard') }}">
+      <div class="brand-mark">R</div>
+      <div>
+        <strong>REEM</strong>
+        <span>Agent workflow</span>
+      </div>
+    </a>
+    <nav>
+      <a href="{{ url_for('dashboard') }}">Graph</a>
+      <a href="{{ url_for('new_claim') }}">New</a>
+      <a href="{{ url_for('approvals') }}">Approve</a>
+      <a href="{{ url_for('policies') }}">Policy</a>
+      <a href="{{ url_for('evaluation') }}">Eval</a>
+      <a href="{{ url_for('demo') }}">Demos</a>
+    </nav>
+    <div class="role-box">
+      {% if demo_mode %}
+        <span class="badge">DEMO</span>
+      {% else %}
+        <span class="badge live">LIVE</span>
+      {% endif %}
+      <form action="{{ url_for('switch_role') }}" method="post">
+        <select name="role" onchange="this.form.submit()">
+          {% for r in roles %}
+            <option value="{{ r.role }}" {% if r.role == current_role %}selected{% endif %}>{{ r.role }}</option>
+          {% endfor %}
+        </select>
+      </form>
+    </div>
+  </header>
+  <main class="wrap">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for cat, msg in messages %}
+        <div class="flash {{ cat }}">{{ msg }}</div>
+      {% endfor %}
+    {% endwith %}
+    {% block body %}{% endblock %}
+  </main>
+  <script src="{{ url_for('static', filename='graph.js') }}"></script>
+</body>
+</html>

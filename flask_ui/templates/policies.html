@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Policy versions — Reem{% endblock %}
+{% block body %}
+<h1>Policy versioning + rollback</h1>
+<p class="sub">Business rules live in code/data. Activate or roll back. ADMIN only.</p>
+
+<p>Current role: <strong>{{ current_role }}</strong> — switch to ADMIN to change versions.</p>
+
+{% for p in data.policies %}
+  <div class="card" style="margin-bottom:12px">
+    <div class="k">{{ p.version }} {% if p.active %}· ACTIVE{% endif %}</div>
+    <h3>{{ p.name }}</h3>
+    <ul>
+      {% for r in p.rules %}
+        <li>{% if r.max %}&lt; ₹{{ '{:,.0f}'.format(r.max) }}{% else %}above last band{% endif %} → {{ r.approver }} — {{ r.reason }}</li>
+      {% endfor %}
+    </ul>
+    <form method="post" class="actions">
+      <input type="hidden" name="version" value="{{ p.version }}">
+      <button class="btn" name="action" value="activate" type="submit">Activate Version</button>
+      <button class="btn ghost" name="action" value="rollback" type="submit">Rollback to this</button>
+    </form>
+  </div>
+{% endfor %}
+
+<div class="card">
+  <div class="k">Audit — policy changes</div>
+  <ul class="audit">
+    {% for c in data.changes %}
+      <li><time>{{ c.time }}</time> Policy changed {{ c.from_version }} → {{ c.to_version }} · {{ c.action }} · {{ c.changed_by }}</li>
+    {% else %}
+      <li>No changes yet.</li>
+    {% endfor %}
+  </ul>
+</div>
+{% endblock %}

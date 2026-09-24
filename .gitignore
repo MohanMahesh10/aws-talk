@@ -1,0 +1,15 @@
+.env
+.env.*
+!.env.example
+data/
+uploads/*
+!uploads/samples/
+!uploads/.gitkeep
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+venv/
+*.db
+.idea/
+.vscode/

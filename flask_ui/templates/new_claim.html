@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}New{% endblock %}
+{% block body %}
+<h1>Start graph</h1>
+<p class="sub">Upload receipts. Reem runs Upload → Understand → …</p>
+
+<form class="stack" method="post" enctype="multipart/form-data">
+  <div class="grid-2">
+    <div>
+      <label>Employee Name</label>
+      <input name="employee_name" value="Rahul Sharma" required>
+      <label>Employee ID</label>
+      <input name="employee_id" value="EMP-1001" required>
+      <label>Trip Purpose</label>
+      <input name="trip_purpose" value="Bangalore Client Visit" required>
+    </div>
+    <div>
+      <label>Trip Location</label>
+      <input name="trip_location" value="Bangalore" required>
+      <label>Trip Start Date</label>
+      <input type="date" name="trip_start" value="2026-09-19" required>
+      <label>Trip End Date</label>
+      <input type="date" name="trip_end" value="2026-09-21" required>
+    </div>
+  </div>
+  <label>Receipts</label>
+  <input type="file" name="files" multiple accept=".pdf,.png,.jpg,.jpeg,.txt">
+  <div class="actions">
+    <button class="btn" type="submit">Run agent</button>
+  </div>
+</form>
+{% endblock %}

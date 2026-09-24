@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% from "_graph.html" import agent_graph %}
+{% block body %}
+<div style="display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap">
+  <div>
+    <h1>Reem</h1>
+    <p class="sub">Travel reimbursement agent. Click a node.</p>
+  </div>
+  {% if data.agent_status == 'ready' %}
+    <div class="status-dot"><i></i> Ready</div>
+  {% elif data.agent_status == 'busy' %}
+    <div class="status-dot busy"><i></i> Working</div>
+  {% else %}
+    <div class="status-dot exception"><i></i> Needs human</div>
+  {% endif %}
+</div>
+
+<div class="stats">
+  <div class="stat">Received <b>{{ data.claims_received }}</b></div>
+  <div class="stat">Done <b>{{ data.claims_processed }}</b></div>
+  <div class="stat">Waiting <b>{{ data.awaiting_approval }}</b></div>
+  <div class="stat">Exceptions <b>{{ data.exceptions }}</b></div>
+  <div class="stat">Paid <b>₹{{ '{:,.0f}'.format(data.total_reimbursement) }}</b></div>
+</div>
+
+{{ agent_graph(graph) }}
+
+<div class="actions">
+  <a class="btn" href="{{ url_for('claim_detail', claim_id='CLM-1001') }}">Open Rahul ₹24,550</a>
+  <a class="btn ghost" href="{{ url_for('new_claim') }}">New claim</a>
+</div>
+
+<div class="card" style="margin-top:18px">
+  <div class="k">Claims</div>
+  <table class="claim-list">
+    <thead><tr><th>ID</th><th>Employee</th><th>Trip</th><th>Total</th><th>Node</th></tr></thead>
+    <tbody>
+    {% for c in data.recent %}
+      <tr class="row-link" onclick="location.href='{{ url_for('claim_detail', claim_id=c.claim_id) }}'">
+        <td><a href="{{ url_for('claim_detail', claim_id=c.claim_id) }}">{{ c.claim_id }}</a></td>
+        <td>{{ c.employee_name }}</td>
+        <td>{{ c.trip_purpose }}</td>
+        <td>₹{{ '{:,.0f}'.format(c.total_amount) }}</td>
+        <td>{{ c.state.replace('_', ' ').title() }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}Evaluation — Reem{% endblock %}
+{% block body %}
+<h1>Agent evaluation</h1>
+<p class="sub">{{ data.label }} — {{ data.disclaimer }}</p>
+<p>Policy version used: <strong>{{ data.policy_version }}</strong></p>
+
+<div class="stats">
+  <div class="stat">Extract <b>{{ data.metrics.extraction_accuracy }}%</b></div>
+  <div class="stat">Classify <b>{{ data.metrics.classification_accuracy }}%</b></div>
+  <div class="stat">Policy <b>{{ data.metrics.policy_routing_accuracy }}%</b></div>
+  <div class="stat">Duplicate <b>{{ data.metrics.duplicate_detection }}%</b></div>
+  <div class="stat">Escalate <b>{{ data.metrics.human_escalation_accuracy }}%</b></div>
+</div>
+
+<div class="card">
+  <table>
+    <thead><tr><th>Case</th><th>File</th><th>Type</th><th>Extract</th><th>Class</th><th>Policy</th><th>Approver</th></tr></thead>
+    <tbody>
+    {% for c in data.cases %}
+      <tr>
+        <td>{{ c.id }}</td>
+        <td>{{ c.file }}</td>
+        <td>{{ c.type }}</td>
+        <td>{{ '✓' if c.extract_ok else '✗' }}</td>
+        <td>{{ '✓' if c.class_ok else '✗' }}</td>
+        <td>{{ '✓' if c.policy_ok else '✗' }}</td>
+        <td>{{ c.approver or '—' }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

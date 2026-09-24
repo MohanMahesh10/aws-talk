@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Approve{% endblock %}
+{% block body %}
+<h1>Human node</h1>
+<p class="sub">You are {{ current_role }}. Agent stopped here.</p>
+
+{% for row in rows %}
+  {% set c = row.claim %}
+  <div class="card" style="margin-bottom:12px">
+    <div class="k">{{ row.required_role }} · {{ c.claim_id }}</div>
+    <p>{{ c.employee_name }} · {{ c.trip_purpose }} · <strong>₹{{ '{:,.0f}'.format(c.total_amount) }}</strong></p>
+    <div class="actions">
+      <a class="btn ghost" href="{{ url_for('claim_detail', claim_id=c.claim_id) }}">Graph</a>
+      <form method="post" action="{{ url_for('approve', claim_id=c.claim_id) }}">
+        <button class="btn good" type="submit">Approve</button>
+      </form>
+      <form method="post" action="{{ url_for('reject', claim_id=c.claim_id) }}">
+        <button class="btn bad" type="submit">Reject</button>
+      </form>
+    </div>
+  </div>
+{% else %}
+  <p class="sub">Queue empty.</p>
+{% endfor %}
+{% endblock %}

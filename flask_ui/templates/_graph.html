@@ -1,0 +1,23 @@
+{% macro agent_graph(nodes) %}
+<div class="stage">
+  <div class="graph-row">
+    {% for n in nodes %}
+      <button type="button" class="node {{ n.kind }} {{ n.status }}{% if n.selected %} selected{% endif %}" data-node="{{ n.id }}">
+        <i>{{ n.kind }}</i>
+        <b>{{ n.label }}</b>
+        <s>{{ n.detail }}</s>
+      </button>
+      {% if not loop.last %}
+        {% set nxt = nodes[loop.index] %}
+        <span class="edge {% if n.status == 'completed' and nxt.status == 'failed' %}bad{% elif n.status == 'completed' and nxt.status == 'running' %}live{% elif n.status == 'completed' %}done{% endif %}"></span>
+      {% endif %}
+    {% endfor %}
+  </div>
+  <div class="legend">
+    <span class="l-ai">AI understands</span>
+    <span class="l-code">Code decides</span>
+    <span class="l-human">Human authorizes</span>
+    <span class="l-act">System pays</span>
+  </div>
+</div>
+{% endmacro %}

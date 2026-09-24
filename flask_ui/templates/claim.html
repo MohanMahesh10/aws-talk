@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+{% from "_graph.html" import agent_graph %}
+{% block title %}{{ claim.claim_id }}{% endblock %}
+{% block body %}
+<h1>{{ claim.claim_id }} · {{ claim.employee_name }}</h1>
+<p class="sub">{{ claim.trip_purpose }} · {{ claim.trip_location }} · ₹{{ '{:,.0f}'.format(claim.total_amount) }}
+  · {% if claim.demo_mode %}demo extract{% else %}{{ claim.extraction_source }}{% endif %}
+</p>
+
+{{ agent_graph(claim.nodes) }}
+
+<div class="work">
+  <div>
+    <div class="insp" data-node="upload">
+      <div class="card">
+        <h3>Upload</h3>
+        <p>{{ claim.files|length }} files in. Agent has not decided anything yet.</p>
+        {% if claim.files %}
+          <ul>{% for f in claim.files %}<li>{{ f }}</li>{% endfor %}</ul>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="insp" data-node="extract">
+      <div class="card">
+        <h3>Understand · AI</h3>
+        <p>Structured JSON from receipts. Source: <strong>{{ claim.extraction_source }}</strong></p>
+        <table>
+          <thead><tr><th>Vendor</th><th>Type</th><th>Invoice</th><th>Amt</th></tr></thead>
+          <tbody>
+          {% for e in claim.expenses %}
+            <tr>
+              <td>{{ e.vendor }}</td>
+              <td>{{ e.expense_type }}</td>
+              <td>{{ e.invoice_number }}</td>
+              <td>₹{{ '{:,.0f}'.format(e.amount) }}</td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="insp" data-node="validate">
+      <div class="card">
+        <h3>Validate · tools</h3>
+        <p>Duplicates, injection, routing lanes. Code, not the model.</p>
+        {% if claim.injection_detected %}
+          <div class="warn-box">Suspicious instruction in document. Treated as data.</div>
+        {% endif %}
+        {% if claim.duplicate_blocked %}
+          <div class="warn-box">Duplicate invoice + amount blocked.</div>
+        {% endif %}
+        {% if claim.loop_detected %}
+          <div class="warn-box">Loop detected. Agent stopped.</div>
+        {% endif %}
+        <table>
+          <thead><tr><th>Vendor</th><th>Lane</th><th>Flag</th></tr></thead>
+          <tbody>
+          {% for e in claim.expenses %}
+            <tr>
+              <td>{{ e.vendor }}</td>
+              <td>{{ e.route }}</td>
+              <td>{% if e.is_duplicate %}DUP{% elif e.injection_flag %}INJECT{% else %}ok{% endif %}</td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="insp" data-node="policy">
+      <div class="card">
+        <h3>Policy · code</h3>
+        <p>Total <strong>₹{{ '{:,.0f}'.format(claim.total_amount) }}</strong></p>
+        <p>Approver <strong>{{ claim.required_approver or '—' }}</strong></p>
+        <p>{{ claim.policy_reason or '—' }}</p>
+        <p class="small">Version {{ claim.policy_version }}{% if claim.cache_hit %} · cache hit{% endif %}</p>
+      </div>
+    </div>
+
+    <div class="insp" data-node="approval">
+      <div class="card approval">
+        <h3>Human · authorize</h3>
+        {% if claim.state == 'APPROVAL_REQUIRED' %}
+          <p>{{ claim.employee_name }} · {{ claim.trip_purpose }}</p>
+          {% for e in claim.expenses if not e.is_duplicate %}
+            <div>{{ e.vendor }} <span style="float:right">₹{{ '{:,.0f}'.format(e.amount) }}</span></div>
+          {% endfor %}
+          <p><strong>₹{{ '{:,.0f}'.format(claim.total_amount) }}</strong> · {{ claim.required_approver }}</p>
+          <form class="actions" method="post" action="{{ url_for('approve', claim_id=claim.claim_id) }}" style="display:inline">
+            <button class="btn good" type="submit">Approve</button>
+          </form>
+          <form class="actions" method="post" action="{{ url_for('reject', claim_id=claim.claim_id) }}" style="display:inline">
+            <button class="btn bad" type="submit">Reject</button>
+          </form>
+          <p class="small">Switch role to {{ claim.required_approver }} if forbidden.</p>
+        {% else %}
+          <p>State: {{ claim.state }}</p>
+          {% for a in claim.approvals %}
+            <p>{{ a.required_role }} · {{ a.status }} {% if a.decided_by %}· {{ a.decided_by }}{% endif %}</p>
+          {% endfor %}
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="insp" data-node="payment">
+      <div class="card">
+        <h3>Payment · act</h3>
+        {% if claim.circuit_open %}
+          <div class="warn-box">Circuit open. Finance must recover.</div>
+        {% endif %}
+        {% if claim.payments %}
+          <ul class="audit">
+            {% for p in claim.payments %}
+              <li><time>#{{ p.attempt }}</time> {{ p.status }} {% if p.error %}— {{ p.error }}{% endif %}</li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <p>No payment yet.</p>
+        {% endif %}
+        {% if claim.state == 'EXCEPTION' and current_role in ['FINANCE', 'ADMIN'] %}
+          <form method="post" action="{{ url_for('retry_payment', claim_id=claim.claim_id) }}">
+            <button class="btn" type="submit">Retry payment</button>
+          </form>
+        {% endif %}
+        {% if claim.state == 'COMPLETED' %}
+          <div class="ok-box">Paid. Claim complete.</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="k">Context</div>
+    <p>{{ claim.context.employee }} · {{ claim.context.expenses }} lines</p>
+    <p>State {{ claim.context.current_state }} · policy {{ claim.context.policy_version }}</p>
+    <p class="small">Memory: {{ claim.memory.claim_count }} prior · {{ claim.memory.last_vendors or '—' }}</p>
+    <div class="k" style="margin-top:14px">Tools</div>
+    <div class="activity">
+      {% for t in claim.traces %}
+        <div>{{ t.tool }}{% if t.cached %} · cache{% endif %}</div>
+      {% else %}
+        <div class="small">No tool calls on this seed until processed.</div>
+      {% endfor %}
+    </div>
+    <div class="actions">
+      <a class="btn ghost" href="{{ url_for('trace', claim_id=claim.claim_id) }}">Trace</a>
+    </div>
+    <div class="k" style="margin-top:14px">Audit</div>
+    <ul class="audit">
+      {% for ev in claim.events[-8:] %}
+        <li><time>{{ ev.time }}</time> {{ ev.message }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+</div>
+{% endblock %}

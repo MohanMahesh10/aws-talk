@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Demos{% endblock %}
+{% block body %}
+<h1>Demos</h1>
+<p class="sub">Each run creates a claim and opens its graph.</p>
+
+{% set items = [
+  ('duplicate', 'Duplicate', 'Same invoice twice. Idempotency.'),
+  ('payment', 'Pay retry', 'Fail once, then succeed.'),
+  ('circuit', 'Circuit', 'Three fails. Breaker opens.'),
+  ('loop', 'Loop', 'Validation repeats. Stop agent.'),
+  ('injection', 'Injection', 'Ignore policy text. Still code decides.'),
+] %}
+{% for key, title, blurb in items %}
+  <div class="scenario">
+    <div>
+      <h3>{{ title }}</h3>
+      <p>{{ blurb }}</p>
+    </div>
+    <form method="post" action="{{ url_for('demo_run', scenario=key) }}">
+      <button class="btn" type="submit">Run</button>
+    </form>
+  </div>
+{% endfor %}
+<div class="scenario">
+  <div>
+    <h3>Policy v1 → v2</h3>
+    <p>₹24,550. v1 CFO. v2 BU Head.</p>
+  </div>
+  <a class="btn ghost" href="{{ url_for('policies') }}">Versions</a>
+</div>
+{% endblock %}

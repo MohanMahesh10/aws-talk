@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Agent Trace {{ data.claim_id }}{% endblock %}
+{% block body %}
+<h1>Agent Trace · {{ data.claim_id }}</h1>
+<p class="sub">Observability + tracing + debugging + cost control</p>
+{% if data.demo_mode %}<span class="badge">DEMO MODE · {{ data.extraction_source }}</span>{% endif %}
+
+<div class="card">
+  <div class="k">Compact claim context — not full history</div>
+  <pre>{{ data.context | tojson(indent=2) }}</pre>
+</div>
+
+<div class="card" style="margin-top:16px">
+  <div class="k">Agent Run</div>
+  {% for t in data.traces %}
+    <div class="trace-step">
+      <strong>Step {{ t.step }}</strong> · Tool: {{ t.tool }}
+      {% if t.parallel %} · parallel{% endif %}
+      {% if t.cached %} · cache{% endif %}
+      <div>Input: {{ t.input }}</div>
+      <div>Output: {{ t.output }}</div>
+      <div class="small">Latency: {{ t.latency_ms }} ms · Cost: ${{ '%.6f'|format(t.cost_usd) }} {% if not t.success %}· FAIL {{ t.error }}{% endif %}</div>
+    </div>
+  {% endfor %}
+  <p>Estimated model cost: <strong>${{ '%.6f'|format(data.estimated_cost_usd) }}</strong></p>
+</div>
+
+<div class="card" style="margin-top:16px">
+  <div class="k">Audit</div>
+  <ul class="audit">
+    {% for ev in data.events %}
+      <li><time>{{ ev.time }}</time> {{ ev.message }}</li>
+    {% endfor %}
+  </ul>
+</div>
+{% endblock %}
