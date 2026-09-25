@@ -1,5 +1,8 @@
 # AI Reimbursement Employee — Reem
 
+<img width="1940" height="3170" alt="Workflow Based on Reference" src="https://github.com/user-attachments/assets/d0dab28c-c4f2-4f8d-a65f-dcfe655b989a" />
+
+
 Conference prototype for **The Real Story Behind the AI Employee**.
 
 Reem processes corporate travel reimbursements: read receipts, classify expenses, apply **code-based** policy, stop for a human when money moves, then mock a payment.
